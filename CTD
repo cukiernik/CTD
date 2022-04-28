@@ -1,0 +1,21 @@
+#!/bin/bash -ex
+trap "echo ERROR>&2" ERR
+if [ $(date "+%d") -le 27 ] ; then
+START=$(date -d "-1 month" "+%Y%m20")
+END=$(date -d "+0 month" "+%Y%m20")
+else
+START=$(date -d "-0 month" "+%Y%m20")
+END=$(date -d "+1 month" "+%Y%m20")
+fi
+(
+echo -e "Niniejszym potwierdzam, że zgłoszone przeze mnie Utwory spełniają warunki wymagane przez Ustawę o prawie autorskim i prawach pokrewnych oraz Ustawę o podatku dochodowym od osób fizycznych.\n\n"
+
+git log --all --author="Piotr Sieduszewski" --remove-empty --format="%h %cI" | while read ID DATE ; do
+echo $ID ${DATE/%T*}
+done | while read ID DATE ; do
+test $START -le ${DATE//-/} && test ${DATE//-/} -le $END && echo $ID
+done | while read ID ; do
+git show $ID --format=fuller
+echo ""
+done | while read L ; do case "$L" in -*);; *) echo "$L" ;; esac ; done
+) | tee ${END}.CTD
